@@ -7,6 +7,11 @@ let currentPage = 1;
 let currentQueryValue = "";
 let totalPage = 1;
 
+window.onload = function() {
+    clearError();
+};
+
+
 document.getElementById("searchBtn").addEventListener("click", function() {
     currentQueryValue = document.getElementById("searchValue").value.trim();
     const hasImage = document.getElementById("hasImage").checked;

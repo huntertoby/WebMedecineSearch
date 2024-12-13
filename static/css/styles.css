@@ -52,6 +52,18 @@ body {
     background: #0056b3;
 }
 
+.input-group2 {
+    display: flex;
+    align-items: center; /* 垂直對齊 */
+    margin-bottom: 10px; /* 與其他元素的間距 */
+}
+
+.input-group2 label {
+    margin-left: 10px; /* 勾選框和文字間的間距 */
+    margin-right: 0px; /* 去掉多餘的右邊間距 */
+}
+
+
 .result-container {
     background: #fff;
     padding: 20px;
