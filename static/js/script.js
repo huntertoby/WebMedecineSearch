@@ -1,3 +1,5 @@
+// static/js/script.js
+
 // 定義暫存對象，使用 Map 來存儲查詢結果
 const cache = new Map();
 
@@ -7,25 +9,28 @@ let totalPage = 1;
 
 document.getElementById("searchBtn").addEventListener("click", function() {
     currentQueryValue = document.getElementById("searchValue").value.trim();
+    const hasImage = document.getElementById("hasImage").checked;
     if (!currentQueryValue) {
         showError("請輸入查詢值");
         return;
     }
     currentPage = 1;
-    fetchResults();
+    fetchResults(hasImage);
 });
 
 document.getElementById("prevPageBtn").addEventListener("click", function() {
     if (currentPage > 1) {
         currentPage--;
-        fetchResults();
+        const hasImage = document.getElementById("hasImage").checked;
+        fetchResults(hasImage);
     }
 });
 
 document.getElementById("nextPageBtn").addEventListener("click", function() {
     if (currentPage < totalPage) {
         currentPage++;
-        fetchResults();
+        const hasImage = document.getElementById("hasImage").checked;
+        fetchResults(hasImage);
     }
 });
 
@@ -33,17 +38,27 @@ document.getElementById("pageSelect").addEventListener("change", function() {
     const selectedPage = parseInt(this.value, 10);
     if (!isNaN(selectedPage) && selectedPage >= 1 && selectedPage <= totalPage) {
         currentPage = selectedPage;
-        fetchResults();
+        const hasImage = document.getElementById("hasImage").checked;
+        fetchResults(hasImage);
     }
 });
 
-function generateCacheKey(query, page) {
-    return `${query}|${page}`;
+document.getElementById("hasImage").addEventListener("change", function() {
+    // 當勾選框狀態改變時，重新搜尋
+    currentPage = 1;
+    const hasImage = this.checked;
+    if (currentQueryValue) {
+        fetchResults(hasImage);
+    }
+});
+
+function generateCacheKey(query, page, hasImage) {
+    return `${query}|${page}|${hasImage}`;
 }
 
-function fetchResults() {
+function fetchResults(hasImage) {
     clearError();
-    const cacheKey = generateCacheKey(currentQueryValue, currentPage);
+    const cacheKey = generateCacheKey(currentQueryValue, currentPage, hasImage);
 
     // 檢查暫存中是否有該查詢結果
     if (cache.has(cacheKey)) {
@@ -53,7 +68,7 @@ function fetchResults() {
     }
 
     // 如果沒有，則發送請求
-    fetch(`/search?value=${encodeURIComponent(currentQueryValue)}&page=${currentPage}`)
+    fetch(`/search?value=${encodeURIComponent(currentQueryValue)}&page=${currentPage}&has_image=${hasImage}`)
         .then(response => {
             if (!response.ok) {
                 return response.json().then(data => {throw data});
