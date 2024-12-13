@@ -7,6 +7,8 @@ from flask import Flask, request, jsonify, send_from_directory
 
 app = Flask(__name__)
 
+combined_data = []  # 用來儲存記憶體中的資料
+
 def load_json(file_path):
     with open(file_path, "r", encoding="utf-8-sig") as f:
         return json.load(f)
@@ -44,7 +46,6 @@ def download_file(url, file_path):
         print(f"下載完成並儲存至 {file_path}")
     except requests.exceptions.RequestException as e:
         print(f"下載失敗：{e}")
-        # 若下載失敗，若有舊檔案就使用舊檔案
         if os.path.exists(file_path):
             print(f"使用本地檔案 {file_path}。")
         else:
@@ -77,12 +78,11 @@ def prepare_data():
     download_file(components_url, components_zip)
     download_file(appearance_url, appearance_zip)
 
-    # 建立存放解壓後檔案的資料夾
     extract_dir = "extracted"
     if not os.path.exists(extract_dir):
         os.makedirs(extract_dir)
 
-    # 如果存在下載的 zip 檔則解壓縮 (若下載失敗時，zip檔可能不完整，需檢查)
+    # 如果存在下載的 zip 檔則解壓縮
     if os.path.exists(detailed_zip):
         extract_zip(detailed_zip, extract_dir)
     if os.path.exists(components_zip):
@@ -94,11 +94,9 @@ def prepare_data():
     components_file = os.path.join(extract_dir, components_json)
     appearance_file = os.path.join(extract_dir, appearance_json)
 
-    # 確認檔案存在
     for f in [detailed_file, components_file, appearance_file]:
         if not os.path.exists(f):
             print(f"無法找到 {f}，將嘗試使用本地既有的 combined_data_all.json")
-            # 若無法取得新檔案，但本地已存在 combined_data_all.json，則放棄更新
             if os.path.exists("combined_data_all.json"):
                 print("使用既有的 combined_data_all.json。")
                 return
@@ -130,6 +128,10 @@ def prepare_data():
         json.dump(combined_data_all, outfile, ensure_ascii=False, indent=4)
     print(f"資料已成功整合並儲存在 '{output_file}'。")
 
+    # 一次性讀取合併後的資料到記憶體中
+    global combined_data
+    combined_data = combined_data_all
+
 def compute_score(query, item):
     detailed = item.get("詳細資料", {})
     license_no = detailed.get("許可證字號", "")
@@ -157,11 +159,15 @@ def search():
     if not query_value:
         return jsonify({"error": "Missing query parameters"}), 400
 
-    if not os.path.exists("combined_data_all.json"):
-        return jsonify({"error": "No combined data available"}), 500
-
-    with open("combined_data_all.json", "r", encoding="utf-8-sig") as f:
-        combined_data = json.load(f)
+    global combined_data
+    # 確保 combined_data 已經載入記憶體
+    if not combined_data:
+        # 若預先未成功讀取資料，那就嘗試從檔案載入(僅一次)
+        if os.path.exists("combined_data_all.json"):
+            with open("combined_data_all.json", "r", encoding="utf-8-sig") as f:
+                combined_data = json.load(f)
+        else:
+            return jsonify({"error": "No combined data available"}), 500
 
     scored_items = []
     for item in combined_data:
@@ -187,9 +193,6 @@ def search():
     }
     return jsonify(response), 200
 
-prepare_data()
 
 if __name__ == "__main__":
-    # 啟動前嘗試更新資料並合併
-    prepare_data()
     app.run(debug=True, host="0.0.0.0", port=5000)
