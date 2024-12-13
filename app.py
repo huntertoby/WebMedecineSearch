@@ -12,6 +12,10 @@ from DataProcessor import DataProcessor
 # 載入環境變數
 load_dotenv()
 
+# 設定 logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(levelname)s] %(message)s')
+logger = logging.getLogger(__name__)
+
 app = Flask(__name__)
 
 # 配置資料庫 URI，預設使用 SQLite
@@ -20,9 +24,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # 初始化 SQLAlchemy
 db = SQLAlchemy(app)
-
-
-
 
 # 定義資料庫模型
 class Drug(db.Model):
@@ -75,39 +76,39 @@ def prepare_and_load_data():
 
     downloader = DataDownloader()
     processor = DataProcessor()
+    logger.info("開始下載和處理資料...")
     processor.prepare_data(downloader, urls_files)
-
 
 def load_data_from_json(json_file_path):
     try:
         with open(json_file_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
-        print(f"成功載入 JSON 檔案：{json_file_path}")
+        logger.info(f"成功載入 JSON 檔案：{json_file_path}")
     except FileNotFoundError:
-        print(f"JSON 檔案未找到：{json_file_path}")
+        logger.error(f"JSON 檔案未找到：{json_file_path}")
         return
     except json.JSONDecodeError as e:
-        print(f"JSON 解析錯誤：{e}")
+        logger.error(f"JSON 解析錯誤：{e}")
         return
 
     # 調試：打印頂層鍵或確認是否是列表
     if isinstance(data, dict):
         top_level_keys = data.keys()
-        print(f"JSON 頂層鍵：{list(top_level_keys)}")
+        logger.debug(f"JSON 頂層鍵：{list(top_level_keys)}")
         if 'results' in data:
             items = data['results']
         else:
-            print("JSON 檔案中缺少 'results' 欄位")
+            logger.warning("JSON 檔案中缺少 'results' 欄位")
             return
     elif isinstance(data, list):
         items = data
-        print("JSON 檔案是頂層列表。")
+        logger.debug("JSON 檔案是頂層列表。")
     else:
-        print("JSON 檔案格式不正確，無法識別資料結構。")
+        logger.warning("JSON 檔案格式不正確，無法識別資料結構。")
         return
 
     if not items:
-        print("JSON 檔案中沒有任何資料。")
+        logger.warning("JSON 檔案中沒有任何資料。")
         return
 
     for item in items:
@@ -149,16 +150,14 @@ def load_data_from_json(json_file_path):
 
     try:
         db.session.commit()
-        print("資料已成功載入到資料庫。")
+        logger.info("資料已成功載入到資料庫。")
     except Exception as e:
         db.session.rollback()
-        print(f"資料載入失敗：{e}")
-
+        logger.error(f"資料載入失敗：{e}")
 
 @app.route("/")
 def home():
     return render_template('index.html')
-
 
 @app.route("/search", methods=["GET"])
 def search():
@@ -168,9 +167,9 @@ def search():
     has_image = request.args.get("has_image", "false").lower() == "true"
 
     if not query_value:
+        logger.warning("缺少查詢參數。")
         return jsonify({"error": "Missing query parameters"}), 400
 
-    # 使用 SQLAlchemy 進行查詢，搜索中文品名、英文品名和適應症
     drugs_query = Drug.query.filter(
         (Drug.chinese_name.contains(query_value)) |
         (Drug.english_name.contains(query_value)) |
@@ -180,15 +179,9 @@ def search():
     if has_image:
         drugs_query = drugs_query.join(Appearance).filter(Appearance.image_url.isnot(None), Appearance.image_url != "")
 
-    # 總結果數量
     total_results = drugs_query.count()
-    # 總頁數
     total_pages = ceil(total_results / per_page) if per_page else 1
-
-    # 計算偏移量
     offset = (page - 1) * per_page
-
-    # 使用 limit 和 offset 來實現分頁
     drugs = drugs_query.limit(per_page).offset(offset).all()
 
     results = []
@@ -227,19 +220,17 @@ def search():
         "page": page
     }
 
+    logger.info(f"查詢完成，返回 {len(results)} 筆結果，頁數 {page}/{total_pages}")
     return jsonify(response), 200
 
-
 if __name__ == "__main__":
-    # 應用啟動時即建立資料庫表格並載入資料
     with app.app_context():
-        print("建立資料庫表格（如果尚未存在）...")
+        logger.info("建立資料庫表格（如果尚未存在）...")
         db.create_all()
-        print("資料庫表格建立完成。")
+        logger.info("資料庫表格建立完成。")
 
         prepare_and_load_data()
         load_data_from_json('combined_data_all.json')
-        # print("資料庫中已有資料，跳過載入。")
 
-    # 在正式生產環境中，不要使用 debug 模式
+    logger.info("啟動應用程式...")
     app.run(host="0.0.0.0", port=5000, debug=False)
