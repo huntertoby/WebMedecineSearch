@@ -3,3 +3,6 @@ Flask-Session
 Flask-SQLAlchemy
 Werkzeug
 gunicorn
+requests
+zipfile
+difflib
