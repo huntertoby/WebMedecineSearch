@@ -147,6 +147,14 @@ def load_data_from_json(json_file_path):
         db.session.rollback()
         app.logger.info(f"資料載入失敗：{e}")
 
+@app.before_request
+def initialize():
+    app.logger.info("建立資料庫表格（如果尚未存在）...")
+    db.create_all()
+    app.logger.info("資料庫表格建立完成。")
+
+    prepare_and_load_data()
+    load_data_from_json('combined_data_all.json')
 @app.route("/")
 def home():
     return render_template('index.html')
@@ -221,7 +229,7 @@ def search():
     return jsonify(response), 200
 
 if __name__ == "__main__":
-    # 應用啟動時即建立資料庫表格並載入資料
+
     with app.app_context():
         app.logger.info("建立資料庫表格（如果尚未存在）...")
         db.create_all()
@@ -230,5 +238,9 @@ if __name__ == "__main__":
         prepare_and_load_data()
         load_data_from_json('combined_data_all.json')
 
+
     # 在正式生產環境中，不要使用 debug 模式
     app.run(host="0.0.0.0", port=5000, debug=False)
+
+    # 應用啟動時即建立資料庫表格並載入資料
+
