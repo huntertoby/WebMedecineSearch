@@ -161,9 +161,9 @@ def create_app():
         app.logger.info("資料庫表格建立完成。")
 
         # 執行下載與處理資料
-        # prepare_and_load_data()
+        prepare_and_load_data()
         # 載入合併後的 JSON 資料至資料庫
-        # load_data_from_json('combined_data_all.json', app)
+        load_data_from_json('combined_data_all.json', app)
 
     # 定義路由
     @app.route("/")
