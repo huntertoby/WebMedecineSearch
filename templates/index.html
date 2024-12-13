@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>藥品查詢</title>
+    <!-- 使用 Flask 的 url_for 來引用靜態 CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+
+<div class="search-container">
+    <h1>藥品查詢</h1>
+    <div class="input-group">
+        <label for="searchValue">關鍵字:</label>
+        <input type="text" id="searchValue" placeholder="請輸入查詢值...">
+        <button id="searchBtn">搜尋</button>
+    </div>
+</div>
+
+<div id="errorContainer" style="display:none;" class="error"></div>
+
+<div id="resultsWrapper" style="display:none;">
+    <div class="result-container" id="resultContainer"></div>
+    <div class="pagination" id="paginationContainer" style="display:none;">
+        <button id="prevPageBtn">上一頁</button>
+        <div class="page-select-container">
+            <label for="pageSelect">跳轉頁碼：</label>
+            <select id="pageSelect"></select>
+        </div>
+        <button id="nextPageBtn">下一頁</button>
+    </div>
+</div>
+
+<!-- 使用 Flask 的 url_for 來引用靜態 JavaScript -->
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</body>
+</html>

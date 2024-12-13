@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, render_template
 
 from DataDownloader import DataDownloader
 from DataProcessor import DataProcessor
@@ -33,10 +33,11 @@ class App:
 
         self.search_engine = SearchEngine()
 
+
     def setup_routes(self):
         @self.app.route("/")
         def home():
-            return send_from_directory('static', 'index.html')
+            return render_template('index.html')
 
         @self.app.route("/search", methods=["GET"])
         def search():
@@ -49,6 +50,9 @@ class App:
             if not os.path.exists("combined_data_all.json"):
                 return jsonify({"error": "No combined data available"}), 500
 
+            if not self.search_engine:
+                return jsonify({"error": "Search engine not initialized"}), 500
+
             response, status = self.search_engine.search(query_value, page)
             return jsonify(response), status
 
@@ -58,4 +62,4 @@ class App:
 if __name__ == "__main__":
     # 初始化並運行應用程式
     application = App()
-    application.run(debug=True, host="0.0.0.0", port=5000)
+    application.run(debug=False, host="0.0.0.0", port=5000)
