@@ -1,3 +1,6 @@
+// 定義暫存對象，使用 Map 來存儲查詢結果
+const cache = new Map();
+
 let currentPage = 1;
 let currentQueryValue = "";
 let totalPage = 1;
@@ -34,8 +37,22 @@ document.getElementById("pageSelect").addEventListener("change", function() {
     }
 });
 
+function generateCacheKey(query, page) {
+    return `${query}|${page}`;
+}
+
 function fetchResults() {
     clearError();
+    const cacheKey = generateCacheKey(currentQueryValue, currentPage);
+
+    // 檢查暫存中是否有該查詢結果
+    if (cache.has(cacheKey)) {
+        console.log(`從暫存中獲取結果：${cacheKey}`);
+        showResults(cache.get(cacheKey));
+        return;
+    }
+
+    // 如果沒有，則發送請求
     fetch(`/search?value=${encodeURIComponent(currentQueryValue)}&page=${currentPage}`)
         .then(response => {
             if (!response.ok) {
@@ -44,6 +61,8 @@ function fetchResults() {
             return response.json();
         })
         .then(data => {
+            // 將結果存入暫存
+            cache.set(cacheKey, data);
             showResults(data);
         })
         .catch(err => {
