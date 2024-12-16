@@ -1,3 +1,6 @@
+/* static/css/styles.css */
+
+/* 通用樣式 */
 body {
     font-family: Arial, sans-serif;
     background: #f9f9f9;
@@ -5,9 +8,10 @@ body {
     margin: 0;
     padding: 20px;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    justify-content: flex-start; /* 垂直對齊至頂部 */
+    align-items: center; /* 水平置中 */
     flex-direction: column;
+    min-height: 100vh; /* 確保 body 高度至少為視窗高度 */
 }
 
 .search-container {
@@ -16,6 +20,8 @@ body {
     border-radius: 8px;
     margin-bottom: 20px;
     max-width: 600px;
+    width: 100%;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* 添加陰影提升視覺效果 */
 }
 
 .search-container h1 {
@@ -46,6 +52,7 @@ body {
     color: #fff;
     cursor: pointer;
     border-radius: 4px;
+    transition: background 0.3s ease;
 }
 
 .input-group button:hover {
@@ -63,13 +70,14 @@ body {
     margin-right: 0px; /* 去掉多餘的右邊間距 */
 }
 
-
 .result-container {
     background: #fff;
     padding: 20px;
     border-radius: 8px;
-    max-width: 600px;
+    max-width: 800px; /* 增加寬度以容納更多內容 */
+    width: 100%;
     margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* 添加陰影 */
 }
 
 .result-item {
@@ -78,12 +86,11 @@ body {
     margin-bottom: 20px;
     border-radius: 5px;
     background-color: #fff;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     /* 確保一致的寬度 */
     width: 100%;
     box-sizing: border-box;
 }
-
 
 .result-item:last-child {
     border-bottom: none;
@@ -95,22 +102,24 @@ body {
     line-height: 1.5;
 }
 
-.components, .appearance {
+/* 成份內容、外觀與藥品介紹 */
+.components, .appearance, .introduction {
     margin-top: 10px;
 }
 
-.components ul, .appearance ul {
+.components ul, .appearance ul, .introduction ul {
     list-style: none;
     padding: 0;
 }
 
-.components li, .appearance li {
+.components li, .appearance li, .introduction li {
     background: #f0f0f0;
     padding: 8px;
     margin-bottom: 5px;
     border-radius: 4px;
 }
 
+/* 外觀圖片 */
 .image-container {
     margin-top: 10px;
 }
@@ -119,8 +128,47 @@ body {
     max-width: 200px;
     border: 1px solid #ccc;
     border-radius: 4px;
+    margin-right: 10px; /* 圖片之間的間距 */
 }
 
+/* 藥品介紹 */
+.introduction ul {
+    padding-left: 0;
+}
+
+.introduction li a {
+    display: inline-block;
+    margin-right: 10px;
+    color: #007BFF;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.introduction li a:hover {
+    text-decoration: underline;
+    color: #0056b3;
+}
+
+/* 載入指示器 */
+.loading {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    display: none; /* 初始隱藏 */
+}
+
+.loading p {
+    margin: 0;
+    font-size: 16px;
+    color: #555;
+}
+
+/* 錯誤訊息 */
 .error {
     background: #ffe5e5;
     color: #a33;
@@ -128,8 +176,10 @@ body {
     border-radius: 4px;
     max-width: 600px;
     margin-bottom: 20px;
+    display: none; /* 初始隱藏 */
 }
 
+/* 分頁 */
 .pagination {
     display: flex;
     justify-content: space-between;
@@ -145,6 +195,11 @@ body {
     color: #fff;
     cursor: pointer;
     border-radius: 4px;
+    transition: background 0.3s ease;
+}
+
+.pagination button:hover:not([disabled]) {
+    background: #0056b3;
 }
 
 .pagination button[disabled] {
@@ -164,4 +219,6 @@ body {
 .page-select-container select {
     padding: 5px;
     font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
 }

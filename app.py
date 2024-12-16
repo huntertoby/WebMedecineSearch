@@ -1,3 +1,5 @@
+# app.py
+
 import os
 import json
 import logging
@@ -14,6 +16,8 @@ load_dotenv()
 
 db = SQLAlchemy()
 
+
+# 定義資料庫模型
 class Drug(db.Model):
     __tablename__ = 'drugs'
     id = db.Column(db.Integer, primary_key=True)
@@ -28,6 +32,8 @@ class Drug(db.Model):
 
     components = db.relationship('Component', backref='drug', lazy=True)
     appearances = db.relationship('Appearance', backref='drug', lazy=True)
+    introductions = db.relationship('DrugIntroduction', backref='drug', lazy=True)
+
 
 class Component(db.Model):
     __tablename__ = 'components'
@@ -36,6 +42,7 @@ class Component(db.Model):
     component_name = db.Column(db.String, nullable=True)
     content = db.Column(db.String, nullable=True)
     unit = db.Column(db.String, nullable=True)
+
 
 class Appearance(db.Model):
     __tablename__ = 'appearances'
@@ -46,6 +53,14 @@ class Appearance(db.Model):
     image_url = db.Column(db.String, nullable=True)
 
 
+class DrugIntroduction(db.Model):
+    __tablename__ = 'drug_introductions'
+    id = db.Column(db.Integer, primary_key=True)
+    drug_id = db.Column(db.Integer, db.ForeignKey('drugs.id'), nullable=False)
+    instruction_url = db.Column(db.String, nullable=True)
+    box_image_url = db.Column(db.String, nullable=True)
+
+
 def prepare_and_load_data():
     """下載並處理多個 ZIP / JSON 檔案的流程."""
     # 定義下載和處理的URL與檔名
@@ -53,18 +68,22 @@ def prepare_and_load_data():
         'zips': {
             "detailed_zip": "http://data.fda.gov.tw/opendata/exportDataList.do?method=ExportData&InfoId=37&logType=3",
             "components_zip": "http://data.fda.gov.tw/opendata/exportDataList.do?method=ExportData&InfoId=43&logType=3",
-            "appearance_zip": "http://data.fda.gov.tw/opendata/exportDataList.do?method=ExportData&InfoId=42&logType=3"
+            "appearance_zip": "http://data.fda.gov.tw/opendata/exportDataList.do?method=ExportData&InfoId=42&logType=3",
+            "instructions_zip": "http://data.fda.gov.tw/opendata/exportDataList.do?method=ExportData&InfoId=39&logType=3"
+            # 新增
         },
         'jsons': {
             "detailed": "37_3.json",
             "components": "43_3.json",
-            "appearance": "42_3.json"
+            "appearance": "42_3.json",
+            "Instructions": "39_3.json"  # 新增
         }
     }
 
     downloader = DataDownloader()
     processor = DataProcessor()
     processor.prepare_data(downloader, urls_files)
+
 
 def load_data_from_json(json_file_path, app):
     """載入外部 JSON 檔案到資料庫."""
@@ -134,6 +153,19 @@ def load_data_from_json(json_file_path, app):
                 image_url=app_item.get('外觀圖檔連結', '')
             )
             db.session.add(appearance)
+
+        # 插入藥品介紹
+        introductions = item.get('藥品介紹', [])
+        for intro in introductions:
+            instruction_url = intro.get("仿單圖檔連結", "")
+            box_image_url = intro.get("外盒圖檔連結", "")
+            if instruction_url or box_image_url:
+                drug_intro = DrugIntroduction(
+                    drug_id=drug.id,
+                    instruction_url=instruction_url,
+                    box_image_url=box_image_url
+                )
+                db.session.add(drug_intro)
 
     try:
         db.session.commit()
@@ -231,6 +263,12 @@ def create_app():
                         "顏色": app_item.color,
                         "外觀圖檔連結": app_item.image_url
                     } for app_item in drug.appearances
+                ],
+                "藥品介紹": [
+                    {
+                        "仿單圖檔連結": intro.instruction_url,
+                        "外盒圖檔連結": intro.box_image_url
+                    } for intro in drug.introductions
                 ]
             }
             results.append(drug_data)

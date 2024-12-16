@@ -1,6 +1,7 @@
+# DataProcessor.py
+
 import json
 import os
-
 
 # DataProcessor負責載入JSON檔案、建立索引和整合資料
 class DataProcessor:
@@ -58,6 +59,20 @@ class DataProcessor:
                 processed.append(rec)
         return processed
 
+    def process_instructions(self, instructions_records):
+        """處理藥品介紹資料"""
+        processed = []
+        for rec in instructions_records:
+            if isinstance(rec, list):
+                intro_dict = {}
+                for item in rec:
+                    if isinstance(item, dict):
+                        intro_dict.update(item)
+                processed.append(intro_dict)
+            elif isinstance(rec, dict):
+                processed.append(rec)
+        return processed
+
     def process_detailed(self, detailed_record):
         if isinstance(detailed_record, list):
             return self.flatten_record(detailed_record)
@@ -65,7 +80,7 @@ class DataProcessor:
             return detailed_record
         return {}
 
-    def combine_all_data(self, detailed_data, components_index, appearance_index):
+    def combine_all_data(self, detailed_data, components_index, appearance_index, instructions_index):
         combined = []
         for detail_item in detailed_data:
             detail_dict = self.process_detailed(detail_item)
@@ -75,14 +90,17 @@ class DataProcessor:
 
             comp_records = components_index.get(license_no, [])
             app_records = appearance_index.get(license_no, [])
+            instr_records = instructions_index.get(license_no, [])
 
             comp_list = self.process_components(comp_records)
             app_list = self.process_appearance(app_records)
+            instr_list = self.process_instructions(instr_records)
 
             combined_item = {
                 "詳細資料": detail_dict,
                 "成份內容": comp_list,
-                "外觀": app_list
+                "外觀": app_list,
+                "藥品介紹": instr_list  # 新增藥品介紹
             }
             combined.append(combined_item)
 
@@ -116,12 +134,14 @@ class DataProcessor:
         # 建立索引
         components_index = self.index_data_by_license(json_files['components'])
         appearance_index = self.index_data_by_license(json_files['appearance'])
+        instructions_index = self.index_data_by_license(json_files['Instructions'])  # 新增
 
         # 整合資料
         combined_data_all = self.combine_all_data(
             json_files['detailed'],
             components_index,
-            appearance_index
+            appearance_index,
+            instructions_index  # 新增
         )
         print(f"資料整合完成，共整合 {len(combined_data_all)} 筆資料。")
 

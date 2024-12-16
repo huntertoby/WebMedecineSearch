@@ -11,7 +11,6 @@ window.onload = function() {
     clearError();
 };
 
-
 document.getElementById("searchBtn").addEventListener("click", function() {
     currentQueryValue = document.getElementById("searchValue").value.trim();
     const hasImage = document.getElementById("hasImage").checked;
@@ -57,18 +56,27 @@ document.getElementById("hasImage").addEventListener("change", function() {
     }
 });
 
+// 增加回車鍵觸發搜尋功能
+document.getElementById("searchValue").addEventListener("keypress", function(event) {
+    if (event.key === "Enter") {
+        document.getElementById("searchBtn").click();
+    }
+});
+
 function generateCacheKey(query, page, hasImage) {
     return `${query}|${page}|${hasImage}`;
 }
 
 function fetchResults(hasImage) {
     clearError();
+    showLoading(true);
     const cacheKey = generateCacheKey(currentQueryValue, currentPage, hasImage);
 
     // 檢查暫存中是否有該查詢結果
     if (cache.has(cacheKey)) {
         console.log(`從暫存中獲取結果：${cacheKey}`);
         showResults(cache.get(cacheKey));
+        showLoading(false);
         return;
     }
 
@@ -93,6 +101,9 @@ function fetchResults(hasImage) {
             } else {
                 showError("發生錯誤");
             }
+        })
+        .finally(() => {
+            showLoading(false);
         });
 }
 
@@ -107,6 +118,10 @@ function showResults(data) {
         const detailed = item["詳細資料"] || {};
         const components = item["成份內容"] || [];
         const appearance = item["外觀"] || [];
+        const introductions = item["藥品介紹"] || [];
+
+        // 只保留有至少一個連結的介紹
+        const validIntroductions = introductions.filter(intro => intro["仿單圖檔連結"] || intro["外盒圖檔連結"]);
 
         const resultItem = document.createElement("div");
         resultItem.className = "result-item";
@@ -140,7 +155,6 @@ function showResults(data) {
             resultItem.appendChild(componentsSection);
         }
 
-        let imageUrl = "";
         if (appearance.length > 0) {
             const appearanceSection = document.createElement("div");
             appearanceSection.className = "appearance";
@@ -148,21 +162,45 @@ function showResults(data) {
             const ul = document.createElement("ul");
             appearance.forEach(app => {
                 const li = document.createElement("li");
-                li.textContent = `形狀:${app["形狀"] || "無"} 顏色:${app["顏色"] || "無"}`;
+                li.textContent = `形狀: ${app["形狀"] || "無"} 顏色: ${app["顏色"] || "無"}`;
                 ul.appendChild(li);
-                if (app["外觀圖檔連結"]) {
-                    imageUrl = app["外觀圖檔連結"];
-                }
             });
             appearanceSection.appendChild(ul);
             resultItem.appendChild(appearanceSection);
         }
 
-        if (imageUrl) {
+        // 顯示外觀圖片
+        const imageUrls = appearance.map(app => app["外觀圖檔連結"]).filter(url => url);
+        if (imageUrls.length > 0) {
             const imageContainer = document.createElement("div");
             imageContainer.className = "image-container";
-            imageContainer.innerHTML = `<h3>外觀圖片</h3><img src="${imageUrl}" alt="drug image"/>`;
+            imageUrls.forEach(url => {
+                const img = document.createElement("img");
+                img.src = url;
+                img.alt = "藥品外觀圖片";
+                imageContainer.appendChild(img);
+            });
             resultItem.appendChild(imageContainer);
+        }
+
+        // 顯示藥品介紹（僅當有有效連結時）
+        if (validIntroductions.length > 0) {
+            const introductionSection = document.createElement("div");
+            introductionSection.className = "introduction";
+            introductionSection.innerHTML = `<h3>藥品介紹</h3>`;
+            const ul = document.createElement("ul");
+
+            validIntroductions.forEach(intro => {
+                const li = document.createElement("li");
+                // 檢查是否有仿單圖檔連結和外盒圖檔連結
+                const instructionLink = intro["仿單圖檔連結"] ? `<a href="${intro["仿單圖檔連結"]}" target="_blank">仿單下載</a>` : "";
+                const boxImageLink = intro["外盒圖檔連結"] ? `<a href="${intro["外盒圖檔連結"]}" target="_blank">外盒圖檔</a>` : "";
+                li.innerHTML = `${instructionLink} ${boxImageLink}`;
+                ul.appendChild(li);
+            });
+
+            introductionSection.appendChild(ul);
+            resultItem.appendChild(introductionSection);
         }
 
         resultContainer.appendChild(resultItem);
@@ -198,4 +236,14 @@ function clearError() {
     const errorDiv = document.getElementById("errorContainer");
     errorDiv.innerHTML = "";
     errorDiv.style.display = "none";
+}
+
+function showLoading(isLoading) {
+    const loadingIndicator = document.getElementById("loadingIndicator");
+    if (isLoading) {
+        loadingIndicator.style.display = "block";
+        document.getElementById("resultsWrapper").style.display = "none";
+    } else {
+        loadingIndicator.style.display = "none";
+    }
 }
