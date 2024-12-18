@@ -1,9 +1,6 @@
-# DataProcessor.py
-
 import json
 import os
 
-# DataProcessor負責載入JSON檔案、建立索引和整合資料
 class DataProcessor:
     def __init__(self, extract_dir="extracted"):
         self.extract_dir = extract_dir
@@ -60,7 +57,6 @@ class DataProcessor:
         return processed
 
     def process_instructions(self, instructions_records):
-        """處理藥品介紹資料"""
         processed = []
         for rec in instructions_records:
             if isinstance(rec, list):
@@ -107,17 +103,14 @@ class DataProcessor:
         return combined
 
     def prepare_data(self, downloader, urls_files):
-        # 下載ZIP檔案
         for zip_filename, url in urls_files['zips'].items():
             downloader.download_file(url, zip_filename)
 
-        # 解壓縮檔案
         for zip_filename in urls_files['zips'].keys():
             zip_path = os.path.join(downloader.download_dir, zip_filename)
             if os.path.exists(zip_path):
                 downloader.extract_zip(zip_path)
-
-        # 檢查並載入JSON檔案
+                
         json_files = {}
         for key, json_filename in urls_files['jsons'].items():
             json_path = os.path.join(self.extract_dir, json_filename)
@@ -131,17 +124,15 @@ class DataProcessor:
                     return
             json_files[key] = self.load_json(json_path)
 
-        # 建立索引
         components_index = self.index_data_by_license(json_files['components'])
         appearance_index = self.index_data_by_license(json_files['appearance'])
-        instructions_index = self.index_data_by_license(json_files['Instructions'])  # 新增
+        instructions_index = self.index_data_by_license(json_files['Instructions'])  
 
-        # 整合資料
         combined_data_all = self.combine_all_data(
             json_files['detailed'],
             components_index,
             appearance_index,
-            instructions_index  # 新增
+            instructions_index  
         )
         print(f"資料整合完成，共整合 {len(combined_data_all)} 筆資料。")
 
