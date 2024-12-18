@@ -1,6 +1,4 @@
-/* static/css/styles.css */
 
-/* 通用樣式 */
 body {
     font-family: Arial, sans-serif;
     background: #f9f9f9;
@@ -8,10 +6,10 @@ body {
     margin: 0;
     padding: 20px;
     display: flex;
-    justify-content: flex-start; /* 垂直對齊至頂部 */
-    align-items: center; /* 水平置中 */
+    justify-content: flex-start; 
+    align-items: center; 
     flex-direction: column;
-    min-height: 100vh; /* 確保 body 高度至少為視窗高度 */
+    min-height: 100vh; 
 }
 
 .search-container {
@@ -21,7 +19,7 @@ body {
     margin-bottom: 20px;
     max-width: 600px;
     width: 100%;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* 添加陰影提升視覺效果 */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
 }
 
 .search-container h1 {
@@ -61,23 +59,23 @@ body {
 
 .input-group2 {
     display: flex;
-    align-items: center; /* 垂直對齊 */
-    margin-bottom: 10px; /* 與其他元素的間距 */
+    align-items: center; 
+    margin-bottom: 10px; 
 }
 
 .input-group2 label {
-    margin-left: 10px; /* 勾選框和文字間的間距 */
-    margin-right: 0px; /* 去掉多餘的右邊間距 */
+    margin-left: 10px; 
+    margin-right: 0px; 
 }
 
 .result-container {
     background: #fff;
     padding: 20px;
     border-radius: 8px;
-    max-width: 800px; /* 增加寬度以容納更多內容 */
+    max-width: 800px; 
     width: 100%;
     margin-bottom: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* 添加陰影 */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
 }
 
 .result-item {
@@ -96,13 +94,12 @@ body {
     border-bottom: none;
 }
 
-/* 藥品詳細資料 */
+
 .drug-info p {
     margin: 5px 0;
     line-height: 1.5;
 }
 
-/* 成份內容、外觀與藥品介紹 */
 .components, .appearance, .introduction {
     margin-top: 10px;
 }
@@ -119,7 +116,6 @@ body {
     border-radius: 4px;
 }
 
-/* 外觀圖片 */
 .image-container {
     margin-top: 10px;
 }
@@ -128,10 +124,9 @@ body {
     max-width: 200px;
     border: 1px solid #ccc;
     border-radius: 4px;
-    margin-right: 10px; /* 圖片之間的間距 */
+    margin-right: 10px; 
 }
 
-/* 藥品介紹 */
 .introduction ul {
     padding-left: 0;
 }
@@ -149,7 +144,7 @@ body {
     color: #0056b3;
 }
 
-/* 載入指示器 */
+
 .loading {
     background: #fff;
     padding: 20px;
@@ -159,7 +154,7 @@ body {
     text-align: center;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     margin-bottom: 20px;
-    display: none; /* 初始隱藏 */
+    display: none;
 }
 
 .loading p {
@@ -168,7 +163,6 @@ body {
     color: #555;
 }
 
-/* 錯誤訊息 */
 .error {
     background: #ffe5e5;
     color: #a33;
@@ -176,10 +170,9 @@ body {
     border-radius: 4px;
     max-width: 600px;
     margin-bottom: 20px;
-    display: none; /* 初始隱藏 */
+    display: none; 
 }
 
-/* 分頁 */
 .pagination {
     display: flex;
     justify-content: space-between;
