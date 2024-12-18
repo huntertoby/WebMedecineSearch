@@ -1,6 +1,3 @@
-// static/js/script.js
-
-// 定義暫存對象，使用 Map 來存儲查詢結果
 const cache = new Map();
 
 let currentPage = 1;
@@ -48,7 +45,6 @@ document.getElementById("pageSelect").addEventListener("change", function() {
 });
 
 document.getElementById("hasImage").addEventListener("change", function() {
-    // 當勾選框狀態改變時，重新搜尋
     currentPage = 1;
     const hasImage = this.checked;
     if (currentQueryValue) {
@@ -56,7 +52,6 @@ document.getElementById("hasImage").addEventListener("change", function() {
     }
 });
 
-// 增加回車鍵觸發搜尋功能
 document.getElementById("searchValue").addEventListener("keypress", function(event) {
     if (event.key === "Enter") {
         document.getElementById("searchBtn").click();
@@ -72,7 +67,6 @@ function fetchResults(hasImage) {
     showLoading(true);
     const cacheKey = generateCacheKey(currentQueryValue, currentPage, hasImage);
 
-    // 檢查暫存中是否有該查詢結果
     if (cache.has(cacheKey)) {
         console.log(`從暫存中獲取結果：${cacheKey}`);
         showResults(cache.get(cacheKey));
@@ -80,7 +74,6 @@ function fetchResults(hasImage) {
         return;
     }
 
-    // 如果沒有，則發送請求
     fetch(`/search?value=${encodeURIComponent(currentQueryValue)}&page=${currentPage}&has_image=${hasImage}`)
         .then(response => {
             if (!response.ok) {
@@ -169,7 +162,6 @@ function showResults(data) {
             resultItem.appendChild(appearanceSection);
         }
 
-        // 顯示外觀圖片
         const imageUrls = appearance.map(app => app["外觀圖檔連結"]).filter(url => url);
         if (imageUrls.length > 0) {
             const imageContainer = document.createElement("div");
@@ -183,7 +175,6 @@ function showResults(data) {
             resultItem.appendChild(imageContainer);
         }
 
-        // 顯示藥品介紹（僅當有有效連結時）
         if (validIntroductions.length > 0) {
             const introductionSection = document.createElement("div");
             introductionSection.className = "introduction";
@@ -192,7 +183,6 @@ function showResults(data) {
 
             validIntroductions.forEach(intro => {
                 const li = document.createElement("li");
-                // 檢查是否有仿單圖檔連結和外盒圖檔連結
                 const instructionLink = intro["仿單圖檔連結"] ? `<a href="${intro["仿單圖檔連結"]}" target="_blank">仿單下載</a>` : "";
                 const boxImageLink = intro["外盒圖檔連結"] ? `<a href="${intro["外盒圖檔連結"]}" target="_blank">外盒圖檔</a>` : "";
                 li.innerHTML = `${instructionLink} ${boxImageLink}`;
