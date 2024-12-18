@@ -1,10 +1,7 @@
-# DataDownloader.py
-
 import os
 import zipfile
 import requests
 
-# DataDownloader負責下載和解壓縮資料
 class DataDownloader:
     def __init__(self, download_dir="downloads", extract_dir="extracted"):
         self.download_dir = download_dir
